@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="07a88d13-c5c2-4669-8b8f-e4ee60dc4c9c" >
+		<salesforce:basic-connection username="senjil@salesforce.com" password="Palamaner!1" securityToken="q0YyesSKkSVbjKTkkIRCF6us" />
+	</salesforce:sfdc-config>
+	<flow name="fetchingrecordsFlow" doc:id="98069329-6d09-4f54-b138-9d43817a9e35" >
+		<scheduler doc:name="Scheduler" doc:id="a2c7e758-c5ab-481e-b8bd-759ff8c84460" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="15" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<salesforce:query doc:id="731a0710-934a-4aab-9876-565e1f47c264" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query ><![CDATA[select Name, Phone, Title from contact]]></salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="054e2657-9704-437c-9b09-482ee5f118b9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="7869e638-e074-44e3-baf6-4cdd44840896" message="email id start"/>
+		<file:write doc:name="Write" doc:id="9f349954-0ee6-4822-a8e0-084b54ceff7f" path="C:\Users\USER\Desktop\outp0utfile\Email Ids.txt"/>
+		<ee:transform doc:name="Transform Message" doc:id="93e50dad-4d19-4f0a-a20f-ced6dc1ef8c0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/csv
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="3e25db09-8aad-410e-b311-6f640353d3da" message="contacts starts"/>
+		<file:write doc:id="cb368094-1de4-4a4d-9fe7-677348564304" path="C:\Users\USER\Desktop\outp0utfile\contacts.txt" mode="APPEND"/>
+		<logger level="INFO" doc:name="Logger" doc:id="9eaf4e51-5f68-43de-a4a8-821b1432471c" message="process done"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="89f176c5-066d-4d4d-a835-3312a4b4d589" >
+				<logger level="INFO" doc:name="Logger" doc:id="e8b42d24-fa1f-4602-add9-d56fe4ff3669" message="#['for suppose error ocured procs contunue']"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>
